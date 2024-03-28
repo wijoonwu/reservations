@@ -1,0 +1,11 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+#reservationForm {
+  margin-bottom: 20px;
+}
+
+#reservationsList {
+  margin-top: 20px;
+}

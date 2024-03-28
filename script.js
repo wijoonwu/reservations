@@ -1,46 +1,60 @@
 document.addEventListener("DOMContentLoaded", function () {
-  generateCalendar();
+  generateCalendar(new Date());
 });
 
 let reservations = {};
 
-function generateCalendar() {
+function generateCalendar(date) {
   const calendar = document.getElementById("calendar");
   calendar.innerHTML = ""; // 달력 초기화
 
-  // 예시로 2024년 3월의 달력을 생성합니다. 실제 구현에서는 동적으로 현재 월을 계산해야 합니다.
-  const daysInMonth = new Date(2024, 3, 0).getDate();
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const firstDayOfMonth = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
+  // 달의 첫 번째 날이 시작하는 요일을 찾아서 공백으로 채웁니다.
+  for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
+    const spacer = document.createElement("div");
+    spacer.classList.add("day");
+    calendar.appendChild(spacer);
+  }
+
+  // 실제 날짜를 달력에 추가합니다.
   for (let day = 1; day <= daysInMonth; day++) {
     const dayElement = document.createElement("div");
     dayElement.classList.add("day");
     dayElement.textContent = day;
-    dayElement.addEventListener("click", () => openModal(day));
+    const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      day
+    ).padStart(2, "0")}`;
+
+    dayElement.addEventListener("click", () => openModal(fullDate));
     calendar.appendChild(dayElement);
 
     // 예약된 정보가 있으면 표시
-    if (reservations[day]) {
-      const reservationInfo = document.createElement("span");
-      reservationInfo.textContent = `${reservations[day].name} (${reservations[day].time})`;
+    if (reservations[fullDate]) {
+      const reservationInfo = document.createElement("div");
+      reservationInfo.textContent = `${reservations[fullDate].name} (${reservations[fullDate].time})`;
       const deleteButton = document.createElement("button");
       deleteButton.textContent = "Delete";
       deleteButton.onclick = function () {
-        deleteReservation(day);
+        deleteReservation(fullDate);
       };
+      reservationInfo.appendChild(deleteButton);
       dayElement.appendChild(reservationInfo);
-      dayElement.appendChild(deleteButton);
     }
   }
 }
 
-function openModal(day) {
+function openModal(date) {
   const modal = document.getElementById("modal");
   modal.style.display = "block";
 
   // 예약 저장 버튼에 날짜 바인딩
   const saveButton = modal.querySelector("button");
   saveButton.onclick = function () {
-    saveReservation(day);
+    saveReservation(date);
   };
 }
 
@@ -50,7 +64,7 @@ function closeModal() {
   document.getElementById("timeInput").value = ""; // 입력 필드 초기화
 }
 
-function saveReservation(day) {
+function saveReservation(date) {
   const name = document.getElementById("nameInput").value;
   const time = document.getElementById("timeInput").value;
   if (!name || !time) {
@@ -58,12 +72,12 @@ function saveReservation(day) {
     return;
   }
 
-  reservations[day] = { name, time };
+  reservations[date] = { name, time };
   closeModal();
-  generateCalendar(); // 달력 업데이트
+  generateCalendar(new Date(date));
 }
 
-function deleteReservation(day) {
-  delete reservations[day];
-  generateCalendar(); // 달력 업데이트
+function deleteReservation(date) {
+  delete reservations[date];
+  generateCalendar(new Date(date));
 }

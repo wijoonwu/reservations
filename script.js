@@ -1,75 +1,79 @@
-document.addEventListener("DOMContentLoaded", function () {
-  generateCalendar();
+document.addEventListener("DOMContentLoaded", () => {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  generateCalendar(currentYear, currentMonth);
+
+  const closeModalButton = document.querySelector(".close-button");
+  closeModalButton.addEventListener("click", closeModal);
 });
 
-let reservations = {};
+const reservations = {};
 
-function generateCalendar() {
+function generateCalendar(year, month) {
   const calendar = document.getElementById("calendar");
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const daysInMonth = lastDay.getDate();
-  const firstDayOfWeek = firstDay.getDay();
+  calendar.innerHTML = ""; // Clear existing calendar
 
-  calendar.innerHTML = ""; // 이전에 생성된 달력이 있다면 초기화
+  // Days of the week headers
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  daysOfWeek.forEach((day) => {
+    const dayElement = document.createElement("div");
+    dayElement.textContent = day;
+    calendar.appendChild(dayElement);
+  });
 
-  // 달력의 시작 요일 조정
-  for (let i = 0; i < firstDayOfWeek; i++) {
-    const spacer = document.createElement("div");
-    spacer.classList.add("day");
-    calendar.appendChild(spacer);
+  // Get the first day of the month
+  const firstDay = new Date(year, month).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Fill in the blanks for days of previous month
+  for (let i = 0; i < firstDay; i++) {
+    const blankDay = document.createElement("div");
+    calendar.appendChild(blankDay);
   }
 
-  // 달력 날짜 채우기
+  // Fill in the days
   for (let day = 1; day <= daysInMonth; day++) {
     const dayElement = document.createElement("div");
-    dayElement.classList.add("day");
     dayElement.textContent = day;
-    dayElement.addEventListener("click", function () {
-      const dateString = `${year}-${month + 1}-${day}`;
-      openModal(dateString);
-    });
+    dayElement.className = "day";
+    const dateStr = `${year}-${month + 1}-${day}`;
+
+    dayElement.addEventListener("click", () => openModal(dateStr));
+
+    if (reservations[dateStr]) {
+      reservations[dateStr].forEach((reservation) => {
+        const reservationDiv = document.createElement("div");
+        reservationDiv.textContent = `${reservation.name}, ${reservation.time}`;
+        dayElement.appendChild(reservationDiv);
+      });
+    }
+
     calendar.appendChild(dayElement);
   }
 }
 
-function openModal(date) {
+function openModal(dateStr) {
   const modal = document.getElementById("modal");
   modal.style.display = "block";
 
-  const saveButton = document.querySelector("#modal .save-button");
-  saveButton.onclick = function () {
-    saveReservation(date);
-  };
+  const saveButton = document.querySelector(".save-button");
+  saveButton.onclick = () => saveReservation(dateStr);
 }
 
 function closeModal() {
-  const modal = document.getElementById("modal");
-  modal.style.display = "none";
+  document.getElementById("modal").style.display = "none";
 }
 
-function saveReservation(date) {
+function saveReservation(dateStr) {
   const name = document.getElementById("nameInput").value;
   const time = document.getElementById("timeInput").value;
-  if (!name || !time) {
-    alert("Both name and time are required.");
-    return;
+
+  if (!reservations[dateStr]) {
+    reservations[dateStr] = [];
   }
 
-  if (!reservations[date]) {
-    reservations[date] = [];
-  }
-  reservations[date].push({ name, time });
-
+  reservations[dateStr].push({ name, time });
   closeModal();
-  alert("Reservation saved!");
-  // 여기서 달력을 다시 그리거나 예약된 정보를 표시하는 로직을 추가할 수 있습니다.
+  generateCalendar(new Date().getFullYear(), new Date().getMonth());
 }
-
-// 모달 닫기 버튼에 대한 이벤트 리스너 추가
-document.querySelector(".close-button").addEventListener("click", function () {
-  closeModal();
-});

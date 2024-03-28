@@ -4,11 +4,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const currentYear = now.getFullYear();
   generateCalendar(currentYear, currentMonth);
 
-  const closeModalButton = document.querySelector(".close-button");
-  closeModalButton.addEventListener("click", closeModal);
+  document.querySelector(".close-button").addEventListener("click", closeModal);
 });
 
-const reservations = {};
+const reservations = {
+  // 예시 예약 데이터
+  // "2024-4-20": [{ name: "Alice", time: "10:00" }, { name: "Bob", time: "14:00" }]
+};
 
 function generateCalendar(year, month) {
   const calendar = document.getElementById("calendar");
@@ -23,7 +25,7 @@ function generateCalendar(year, month) {
   });
 
   // Get the first day of the month
-  const firstDay = new Date(year, month).getDay();
+  const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   // Fill in the blanks for days of previous month
@@ -32,23 +34,24 @@ function generateCalendar(year, month) {
     calendar.appendChild(blankDay);
   }
 
-  // Fill in the days
+  // Fill in the days and reservations
   for (let day = 1; day <= daysInMonth; day++) {
     const dayElement = document.createElement("div");
-    dayElement.textContent = day;
     dayElement.className = "day";
+    dayElement.innerHTML = `<strong>${day}</strong>`;
+
     const dateStr = `${year}-${month + 1}-${day}`;
-
-    dayElement.addEventListener("click", () => openModal(dateStr));
-
     if (reservations[dateStr]) {
-      reservations[dateStr].forEach((reservation) => {
-        const reservationDiv = document.createElement("div");
-        reservationDiv.textContent = `${reservation.name}, ${reservation.time}`;
-        dayElement.appendChild(reservationDiv);
+      const reservationsList = document.createElement("ul");
+      reservations[dateStr].forEach((res) => {
+        const li = document.createElement("li");
+        li.textContent = `${res.name}, ${res.time}`;
+        reservationsList.appendChild(li);
       });
+      dayElement.appendChild(reservationsList);
     }
 
+    dayElement.addEventListener("click", () => openModal(dateStr));
     calendar.appendChild(dayElement);
   }
 }
@@ -57,8 +60,23 @@ function openModal(dateStr) {
   const modal = document.getElementById("modal");
   modal.style.display = "block";
 
-  const saveButton = document.querySelector(".save-button");
-  saveButton.onclick = () => saveReservation(dateStr);
+  document.querySelector(".save-button").onclick = () => {
+    const name = document.getElementById("nameInput").value;
+    const time = document.getElementById("timeInput").value;
+    if (!name || !time) {
+      alert("Both name and time are required.");
+      return;
+    }
+
+    if (!reservations[dateStr]) {
+      reservations[dateStr] = [];
+    }
+    reservations[dateStr].push({ name, time });
+    document.getElementById("nameInput").value = ""; // Clear input after saving
+    document.getElementById("timeInput").value = ""; // Clear input after saving
+    closeModal();
+    generateCalendar(new Date().getFullYear(), new Date().getMonth()); // Refresh calendar
+  };
 }
 
 function closeModal() {

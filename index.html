@@ -3,17 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Time Reservation</title>
+    <title>Calendar Reservation</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Time Reservation</h1>
-    <div id="reservationForm">
-      <input type="time" id="timeInput" />
-      <input type="text" id="nameInput" placeholder="Enter name" />
-      <button onclick="addReservation()">Add Reservation</button>
+    <h1>Reservation Calendar</h1>
+    <div id="calendar"></div>
+
+    <!-- 모달 -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" onclick="closeModal()">&times;</span>
+        <h2>Add Reservation</h2>
+        <input type="text" id="nameInput" placeholder="Enter name" />
+        <input type="time" id="timeInput" />
+        <button onclick="saveReservation()">Save</button>
+      </div>
     </div>
-    <div id="reservationsList"></div>
 
     <script src="script.js"></script>
   </body>

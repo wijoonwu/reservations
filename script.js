@@ -1,51 +1,52 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-  generateCalendar(currentYear, currentMonth);
+  const today = new Date();
+  generateCalendar(today.getFullYear(), today.getMonth());
 
   document.querySelector(".close-button").addEventListener("click", closeModal);
 });
 
-const reservations = {
-  // 예시 예약 데이터
-  // "2024-4-20": [{ name: "Alice", time: "10:00" }, { name: "Bob", time: "14:00" }]
-};
+const reservations = {};
 
 function generateCalendar(year, month) {
   const calendar = document.getElementById("calendar");
-  calendar.innerHTML = ""; // Clear existing calendar
+  calendar.innerHTML = ""; // Clear the calendar
 
-  // Days of the week headers
+  // Create the days of the week headers
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   daysOfWeek.forEach((day) => {
-    const dayElement = document.createElement("div");
-    dayElement.textContent = day;
-    calendar.appendChild(dayElement);
+    const dayHeader = document.createElement("div");
+    dayHeader.textContent = day;
+    calendar.appendChild(dayHeader);
   });
 
-  // Get the first day of the month
-  const firstDay = new Date(year, month, 1).getDay();
+  // Calculate the number of days in the month
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // Fill in the blanks for days of previous month
-  for (let i = 0; i < firstDay; i++) {
+  // Calculate what day of the week the month starts on
+  const firstDayOfMonth = new Date(year, month).getDay();
+
+  // Add blanks for the days of the week before the first of the month
+  for (let i = 0; i < firstDayOfMonth; i++) {
     const blankDay = document.createElement("div");
     calendar.appendChild(blankDay);
   }
 
-  // Fill in the days and reservations
+  // Fill in the days of the month
   for (let day = 1; day <= daysInMonth; day++) {
     const dayElement = document.createElement("div");
     dayElement.className = "day";
     dayElement.innerHTML = `<strong>${day}</strong>`;
 
-    const dateStr = `${year}-${month + 1}-${day}`;
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      day
+    ).padStart(2, "0")}`;
+
+    // Check if there are reservations for this day
     if (reservations[dateStr]) {
       const reservationsList = document.createElement("ul");
       reservations[dateStr].forEach((res) => {
         const li = document.createElement("li");
-        li.textContent = `${res.name}, ${res.time}`;
+        li.textContent = `${res.name} at ${res.time}`;
         reservationsList.appendChild(li);
       });
       dayElement.appendChild(reservationsList);
@@ -61,37 +62,25 @@ function openModal(dateStr) {
   modal.style.display = "block";
 
   document.querySelector(".save-button").onclick = () => {
-    const name = document.getElementById("nameInput").value;
-    const time = document.getElementById("timeInput").value;
+    const name = document.getElementById("nameInput").value.trim();
+    const time = document.getElementById("timeInput").value.trim();
     if (!name || !time) {
-      alert("Both name and time are required.");
+      alert("Please enter both a name and a time.");
       return;
     }
 
     if (!reservations[dateStr]) {
       reservations[dateStr] = [];
     }
+
     reservations[dateStr].push({ name, time });
-    document.getElementById("nameInput").value = ""; // Clear input after saving
-    document.getElementById("timeInput").value = ""; // Clear input after saving
     closeModal();
-    generateCalendar(new Date().getFullYear(), new Date().getMonth()); // Refresh calendar
+    generateCalendar(new Date().getFullYear(), new Date().getMonth());
   };
 }
 
 function closeModal() {
   document.getElementById("modal").style.display = "none";
-}
-
-function saveReservation(dateStr) {
-  const name = document.getElementById("nameInput").value;
-  const time = document.getElementById("timeInput").value;
-
-  if (!reservations[dateStr]) {
-    reservations[dateStr] = [];
-  }
-
-  reservations[dateStr].push({ name, time });
-  closeModal();
-  generateCalendar(new Date().getFullYear(), new Date().getMonth());
+  document.getElementById("nameInput").value = "";
+  document.getElementById("timeInput").value = "";
 }
